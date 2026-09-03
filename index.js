@@ -93,12 +93,14 @@ app.post("/api/generate", async (req, res) => {
 
 // ---------------------------------------------------------------------------
 // GET /api/preview/:id — re-fetch a preview (e.g. after returning from a
-// cancelled checkout) without regenerating
+// cancelled checkout) without regenerating. Also returns unlockPriceLabel so
+// the top-level preview.html page can display the correct price on its
+// Unlock button (which lives outside any iframe — see pageBuilder.js).
 // ---------------------------------------------------------------------------
 app.get("/api/preview/:id", (req, res) => {
   const entry = store.get(req.params.id);
   if (!entry) return res.status(404).json({ error: "Generation not found. It may have expired — try generating again." });
-  res.json({ generationId: req.params.id, previewHtml: entry.previewHtml });
+  res.json({ generationId: req.params.id, previewHtml: entry.previewHtml, unlockPriceLabel: UNLOCK_PRICE_LABEL });
 });
 
 // ---------------------------------------------------------------------------
