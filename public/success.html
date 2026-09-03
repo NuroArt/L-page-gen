@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Confirmed — NuroWorks</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="nlp-header">
+    <a class="nlp-logo" href="/">NUROWORKS</a>
+  </header>
+
+  <main class="nlp-container">
+    <div class="nlp-card nlp-success-card" id="content">
+      <div id="status">
+        <h1>Confirming your payment...</h1>
+        <p>This only takes a second.</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session_id');
+    const generationId = params.get('generationId');
+    const statusEl = document.getElementById('status');
+
+    async function verifyAndReveal() {
+      if (!sessionId) {
+        statusEl.innerHTML = '<h1>Something went wrong</h1><p>No payment session found. If you were just charged, contact support and we\'ll sort it out.</p>';
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/verify/${encodeURIComponent(sessionId)}`);
+        const data = await res.json();
+
+        if (data.paid && data.generationId) {
+          statusEl.innerHTML = `
+            <h1>Your page is ready.</h1>
+            <p>Download your full landing page as a single HTML file — host it anywhere.</p>
+            <a class="nlp-download-link" href="/api/download/${encodeURIComponent(data.generationId)}">Download Landing Page</a>
+          `;
+        } else {
+          statusEl.innerHTML = '<h1>Still confirming...</h1><p>Payment is processing. This page will refresh automatically.</p>';
+          setTimeout(verifyAndReveal, 2000);
+        }
+      } catch (err) {
+        statusEl.innerHTML = '<h1>Something went wrong</h1><p>Couldn\'t confirm your payment. Please refresh this page.</p>';
+      }
+    }
+
+    verifyAndReveal();
+  </script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Landing Page Preview — NuroWorks</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="nlp-header">
+    <a class="nlp-logo" href="/">NUROWORKS</a>
+  </header>
+
+  <main class="nlp-container" style="max-width: 1000px;">
+    <div id="status" class="nlp-status">Loading your preview...</div>
+    <div class="nlp-preview-frame-wrap" id="frame-wrap" style="display:none;">
+      <iframe id="preview-frame" title="Landing page preview"></iframe>
+    </div>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const generationId = params.get('generationId');
+    const statusEl = document.getElementById('status');
+    const frameWrap = document.getElementById('frame-wrap');
+    const frame = document.getElementById('preview-frame');
+
+    async function loadPreview() {
+      if (!generationId) {
+        statusEl.textContent = 'No generation specified. Go back and generate a page first.';
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/preview/${encodeURIComponent(generationId)}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          statusEl.textContent = data.error || 'Something went wrong loading your preview.';
+          return;
+        }
+
+        frame.srcdoc = data.previewHtml;
+        statusEl.style.display = 'none';
+        frameWrap.style.display = 'block';
+      } catch (err) {
+        statusEl.textContent = 'Something went wrong loading your preview. Please try again.';
+      }
+    }
+
+    loadPreview();
+  </script>
+</body>
+</html>

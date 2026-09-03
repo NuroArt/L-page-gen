@@ -1,0 +1,161 @@
+/* style.css — shared styles for Instant Landing Page's own site chrome
+   (not the generated landing pages, which are fully self-contained). */
+
+:root {
+  --navy: #1B1F3B;
+  --accent: #5B3FE0;
+  --accent-dark: #4b32c2;
+  --text-muted: #44475A;
+  --border: #E4E1F5;
+  --bg-light: #F7F6FC;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: var(--bg-light);
+  color: var(--navy);
+}
+
+.nlp-header {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nlp-logo {
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.nlp-container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.nlp-hero {
+  text-align: center;
+  margin: 2rem 0 2.5rem;
+}
+
+.nlp-hero h1 {
+  font-size: 2.25rem;
+  margin: 0 0 0.75rem;
+}
+
+.nlp-hero p {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  max-width: 34rem;
+  margin: 0 auto;
+}
+
+.nlp-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.75rem;
+}
+
+.nlp-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.nlp-textarea {
+  width: 100%;
+  min-height: 140px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.85rem;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.nlp-textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.nlp-hint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
+
+.nlp-button {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  padding: 0.9rem 1.75rem;
+  border-radius: 999px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-top: 1.25rem;
+  width: 100%;
+}
+
+.nlp-button:hover { background: var(--accent-dark); }
+.nlp-button:disabled { opacity: 0.6; cursor: default; }
+
+.nlp-error {
+  color: #B3261E;
+  background: #FDEDEC;
+  border: 1px solid #F5C2C0;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  display: none;
+}
+
+.nlp-error.visible { display: block; }
+
+.nlp-preview-frame-wrap {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.nlp-preview-frame-wrap iframe {
+  width: 100%;
+  height: 80vh;
+  border: none;
+  display: block;
+}
+
+.nlp-status {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+}
+
+.nlp-success-card {
+  text-align: center;
+  padding: 3rem 2rem;
+}
+
+.nlp-success-card h1 { font-size: 1.75rem; margin-bottom: 0.5rem; }
+.nlp-success-card p { color: var(--text-muted); margin-bottom: 1.5rem; }
+
+.nlp-download-link {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  padding: 0.9rem 2rem;
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.nlp-download-link:hover { background: var(--accent-dark); }

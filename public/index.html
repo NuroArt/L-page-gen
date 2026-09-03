@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Instant Landing Page — NuroWorks</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="nlp-header">
+    <a class="nlp-logo" href="/">NUROWORKS</a>
+  </header>
+
+  <main class="nlp-container">
+    <div class="nlp-hero">
+      <h1>Instant Landing Page</h1>
+      <p>Describe your business in a sentence or two. Get a complete, ready-to-publish landing page in about a minute.</p>
+    </div>
+
+    <div class="nlp-card">
+      <form id="generate-form">
+        <label class="nlp-label" for="businessDescription">What's your business?</label>
+        <textarea
+          id="businessDescription"
+          class="nlp-textarea"
+          placeholder="e.g. A mobile dog grooming service that comes to your driveway — no crate, no waiting room, professional groomers."
+          required
+        ></textarea>
+        <p class="nlp-hint">The more specific you are, the better the page turns out. Mention who it's for and what makes it different.</p>
+        <button type="submit" class="nlp-button" id="generate-button">Generate My Landing Page</button>
+        <div class="nlp-error" id="error-box"></div>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    const form = document.getElementById('generate-form');
+    const button = document.getElementById('generate-button');
+    const errorBox = document.getElementById('error-box');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorBox.classList.remove('visible');
+      button.disabled = true;
+      button.textContent = 'Generating — this can take up to a minute...';
+
+      const businessDescription = document.getElementById('businessDescription').value.trim();
+
+      try {
+        const res = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ businessDescription }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || 'Something went wrong.');
+        }
+
+        window.location.href = `/preview.html?generationId=${encodeURIComponent(data.generationId)}`;
+      } catch (err) {
+        errorBox.textContent = err.message;
+        errorBox.classList.add('visible');
+        button.disabled = false;
+        button.textContent = 'Generate My Landing Page';
+      }
+    });
+  </script>
+</body>
+</html>
