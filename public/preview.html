@@ -5,6 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Your Landing Page Preview — NuroWorks</title>
   <link rel="stylesheet" href="/style.css" />
+  <style>
+    .nlp-unlock-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      background: #fff;
+      border: 1px solid #E4E1F5;
+      border-radius: 16px;
+      padding: 1.25rem 1.5rem;
+      margin-top: 1.25rem;
+    }
+    .nlp-unlock-bar p { margin: 0; color: #44475A; font-size: 0.95rem; }
+    .nlp-unlock-bar .nlp-button { margin-top: 0; width: auto; white-space: nowrap; padding: 0.85rem 1.75rem; }
+  </style>
 </head>
 <body>
   <header class="nlp-header">
@@ -13,27 +28,89 @@
 
   <main class="nlp-container" style="max-width: 1000px;">
     <div id="status" class="nlp-status">Loading your preview...</div>
-    <div class="nlp-preview-frame-wrap" id="frame-wrap" style="display:none;">
-      <iframe id="preview-frame" title="Landing page preview"></iframe>
+
+    <div id="frame-wrap-outer" style="display:none;">
+      <div class="nlp-preview-frame-wrap" id="frame-wrap">
+        <iframe id="preview-frame" title="Landing page preview"></iframe>
+      </div>
+
+      <div class="nlp-unlock-bar">
+        <p>Ready to see the rest and download the full page?</p>
+        <button class="nlp-button" id="nlp-unlock-button">Unlock Full Page — <span id="price-label">$19</span></button>
+      </div>
     </div>
+
+    <div class="nlp-error" id="error-box"></div>
   </main>
 
   <script>
     const params = new URLSearchParams(window.location.search);
     const generationId = params.get('generationId');
     const statusEl = document.getElementById('status');
-    const frameWrap = document.getElementById('frame-wrap');
+    const frameWrapOuter = document.getElementById('frame-wrap-outer');
     const frame = document.getElementById('preview-frame');
+    const unlockButton = document.getElementById('nlp-unlock-button');
+    const priceLabelEl = document.getElementById('price-label');
+    const errorBox = document.getElementById('error-box');
 
-    if (!generationId) {
-      statusEl.textContent = 'No generation specified. Go back and generate a page first.';
-    } else {
+    async function init() {
+      if (!generationId) {
+        statusEl.textContent = 'No generation specified. Go back and generate a page first.';
+        return;
+      }
+
+      // Fetch metadata (price label) in parallel with loading the visual preview.
+      try {
+        const res = await fetch(`/api/preview/${encodeURIComponent(generationId)}`);
+        const data = await res.json();
+        if (res.ok && data.unlockPriceLabel) {
+          priceLabelEl.textContent = data.unlockPriceLabel;
+        }
+      } catch (err) {
+        // Non-fatal — keep the default price label shown in the HTML.
+      }
+
+      // Load the visual preview into the iframe via a real URL (src, not
+      // srcdoc) — more reliable across browsers than injecting HTML directly.
       frame.src = `/api/preview-html/${encodeURIComponent(generationId)}`;
       frame.addEventListener('load', () => {
         statusEl.style.display = 'none';
-        frameWrap.style.display = 'block';
+        frameWrapOuter.style.display = 'block';
       });
     }
+
+    // This script runs in the TOP-LEVEL page (not inside the iframe), so
+    // window.location.href here correctly navigates the actual browser tab.
+    // Stripe Checkout refuses to run inside an iframe — that's exactly why
+    // this button must live here and not inside the iframe's document.
+    unlockButton.addEventListener('click', async function () {
+      this.disabled = true;
+      const originalText = this.textContent;
+      this.textContent = 'Redirecting to checkout...';
+      errorBox.classList.remove('visible');
+
+      try {
+        const res = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ generationId }),
+        });
+        const data = await res.json();
+
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          throw new Error(data.error || 'Something went wrong starting checkout.');
+        }
+      } catch (err) {
+        this.disabled = false;
+        this.textContent = originalText;
+        errorBox.textContent = err.message;
+        errorBox.classList.add('visible');
+      }
+    });
+
+    init();
   </script>
 </body>
 </html>
