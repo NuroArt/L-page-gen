@@ -2,7 +2,11 @@
 // Assembles the two documents users ever see:
 //   - previewHtml: hero (real, from Claude) + a locked placeholder section
 //     (our own markup, NOT from Claude — nothing of value below the hero
-//     is ever sent to the browser before payment)
+//     is ever sent to the browser before payment). This is PURELY VISUAL —
+//     it has no interactive button or script. It's loaded inside an iframe
+//     on preview.html, and Stripe Checkout refuses to run inside an iframe,
+//     so the real "Unlock" button and its checkout-triggering script live in
+//     preview.html itself (the top-level page), not in this document.
 //   - fullHtml: hero + rest (both real, from Claude) — only ever served
 //     server-side after the store confirms `paid: true`
 
@@ -26,25 +30,13 @@ const LOCK_OVERLAY_STYLES = `
   background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.85) 30%, rgba(255,255,255,0.98) 60%);
 }
 .nlp-locked-overlay h3 { font-size: 1.5rem; margin: 0 0 0.5rem; color: #1B1F3B; }
-.nlp-locked-overlay p { margin: 0 0 1.25rem; color: #44475A; max-width: 32rem; }
-.nlp-unlock-btn {
-  display: inline-block;
-  background: #5B3FE0;
-  color: #fff;
-  padding: 0.85rem 1.75rem;
-  border-radius: 999px;
-  font-weight: 600;
-  text-decoration: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-}
-.nlp-unlock-btn:hover { background: #4b32c2; }
+.nlp-locked-overlay p { margin: 0; color: #44475A; max-width: 32rem; }
 `;
 
 // A generic "shape of a page" placeholder — grey blocks mimicking sections,
-// blurred, with an unlock overlay on top. Purely decorative, no real content.
-function buildLockedPlaceholder(unlockPriceLabel) {
+// blurred, with a purely decorative message overlay (no button — the real
+// button lives on the parent page, outside this iframe content).
+function buildLockedPlaceholder() {
   return `
 <div class="nlp-locked-wrap">
   <div class="nlp-locked-blur" aria-hidden="true">
@@ -67,17 +59,18 @@ function buildLockedPlaceholder(unlockPriceLabel) {
   </div>
   <div class="nlp-locked-overlay">
     <h3>The rest of your page is ready.</h3>
-    <p>Value propositions, social proof, a features section, and a closing call-to-action — written specifically for your business. Unlock the full page to see it and download the file.</p>
-    <button class="nlp-unlock-btn" id="nlp-unlock-button">Unlock Full Page — ${unlockPriceLabel}</button>
+    <p>Value propositions, social proof, a features section, and a closing call-to-action — written specifically for your business. Use the Unlock button on this page to see it and download the file.</p>
   </div>
 </div>`;
 }
 
 /**
- * Builds the free preview document: real hero + locked placeholder + an
- * unlock button wired to POST /api/checkout for the given generation id.
+ * Builds the free preview document: real hero + purely decorative locked
+ * placeholder. No button, no script — this document only ever renders
+ * passively inside an iframe. The interactive "Unlock" flow lives in
+ * preview.html itself (the top-level page).
  */
-function buildPreviewDocument({ htmlOpenTag, headInner, heroHtml, unlockPriceLabel, generationId }) {
+function buildPreviewDocument({ htmlOpenTag, headInner, heroHtml }) {
   return `<!DOCTYPE html>
 ${htmlOpenTag}
 <head>
@@ -86,32 +79,7 @@ ${headInner}
 </head>
 <body>
 ${heroHtml}
-${buildLockedPlaceholder(unlockPriceLabel)}
-<script>
-document.getElementById('nlp-unlock-button').addEventListener('click', async function () {
-  this.disabled = true;
-  this.textContent = 'Redirecting to checkout...';
-  try {
-    const res = await fetch('/api/checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ generationId: ${JSON.stringify(generationId)} }),
-    });
-    const data = await res.json();
-    if (data.url) {
-      window.location.href = data.url;
-    } else {
-      this.disabled = false;
-      this.textContent = 'Unlock Full Page — ${unlockPriceLabel}';
-      alert('Something went wrong starting checkout. Please try again.');
-    }
-  } catch (err) {
-    this.disabled = false;
-    this.textContent = 'Unlock Full Page — ${unlockPriceLabel}';
-    alert('Something went wrong starting checkout. Please try again.');
-  }
-});
-</script>
+${buildLockedPlaceholder()}
 </body>
 </html>`;
 }
