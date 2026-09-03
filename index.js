@@ -102,6 +102,20 @@ app.get("/api/preview/:id", (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
+// GET /api/preview-html/:id — serves the preview as a real HTML page (not
+// JSON), meant to be loaded directly via an iframe's src attribute rather
+// than injected via srcdoc. srcdoc proved unreliable in testing — some
+// browser configurations don't render large srcdoc documents consistently.
+// Loading it as a normal HTTP response is far more universally compatible.
+// ---------------------------------------------------------------------------
+app.get("/api/preview-html/:id", (req, res) => {
+  const entry = store.get(req.params.id);
+  if (!entry) return res.status(404).send("<p>Generation not found. It may have expired.</p>");
+  res.setHeader("Content-Type", "text/html");
+  res.send(entry.previewHtml);
+});
+
+// ---------------------------------------------------------------------------
 // POST /api/checkout — creates a Stripe Checkout Session for a generation
 // ---------------------------------------------------------------------------
 app.post("/api/checkout", async (req, res) => {
